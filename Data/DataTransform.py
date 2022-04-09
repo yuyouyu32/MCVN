@@ -1,5 +1,4 @@
 import os
-from decimal import Decimal
 from typing import List
 
 import numpy as np
@@ -80,7 +79,7 @@ class DataTransform:
         else:
             raise Exception("Sorry, the path of saving is illegal.")
 
-    def generate_original_img(self, chemical_compositions: List[str]):
+    def generate_original_img(self, chemical_compositions: List[str]) -> pd.DataFrame:
         """Generate original image with XenonPy.
 
         Arguments:
@@ -120,7 +119,7 @@ class DataTransform:
         compRes.to_csv(f'{self.save_path}/original_images.csv', index=False)
         return compRes
 
-    def generate_img(self, original_img_path: str = None, img_template_path: str = './ImgTemplate.xlsx',  chemical_compositions: List[str] = None):
+    def generate_img(self, original_img_path: str = None, img_template_path: str = './ImgTemplate.xlsx',  chemical_compositions: List[str] = None) -> pd.DataFrame:
         """Generate image from orginal image or chemical compositions.
 
         Arguments:
@@ -137,10 +136,13 @@ class DataTransform:
                 'Missing parameters: original_img_path or chemical_compositions.')
         if original_img_path is not None and os.path.isfile(original_img_path):
             original_pic = pd.read_csv(original_img_path).astype('float64')
-        else:
+        elif chemical_compositions is not None:
             original_pic = self.generate_original_img(chemical_compositions)
+        else:
+            raise Exception(
+                'Error parameters: original_img_path or chemical_compositions.')
         def max_min_scaler(x): return (x - np.min(x)) / \
-                (np.max(x) - np.min(x))
+            (np.max(x) - np.min(x))
         image = original_pic.apply(max_min_scaler)
         def gray_scaler(x): return round(x * 255)
         image = image.apply(gray_scaler)
@@ -149,18 +151,28 @@ class DataTransform:
         image.astype('float64')
         out_columns = self._get_out_columns(img_template_path)
         image['zeros'] = 0
-        image.to_csv(f'{self.save_path}/Images.csv', index=False, columns=out_columns)
+        image.to_csv(f'{self.save_path}/Images.csv',
+                     index=False, columns=out_columns)
         image = pd.read_csv(f'{self.save_path}/Images.csv')
         return image
-
-
 
 
 '''
 # Test
 if __name__ == '__main__':
+    # Transform from original img.
     NIMS_datatransformer = DataTransform(
         data_path='./NIMS/NIMS_Fatigue.csv', save_path='./NIMS')
     NIMS_datatransformer.generate_img(
         original_img_path='./NIMS/original_images.csv')
+    # Transfrom from original data and chemical compositions.
+    NIMS_datatransformer = DataTransform(
+        data_path='./NIMS/NIMS_Fatigue.csv', save_path='./NIMS')
+    NIMS_datatransformer.generate_img(
+        chemical_compositions=['C', 'Si', 'Mn', 'P', 'S', 'Ni', 'Cr', 'Cu', 'Mo'])
+    # Transfrom with your own image template.
+    NIMS_datatransformer = DataTransform(
+        data_path='./NIMS/NIMS_Fatigue.csv', save_path='./NIMS')
+    NIMS_datatransformer.generate_img(
+        img_template_path: str = 'the path of your template(.xlsx)', chemical_compositions=['C', 'Si', 'Mn', 'P', 'S', 'Ni', 'Cr', 'Cu', 'Mo'])
 '''
