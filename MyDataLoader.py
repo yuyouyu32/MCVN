@@ -7,7 +7,6 @@ import torch
 from typing import List, Dict, Tuple
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from torch import Tensor
 import torch.utils.data as Data
 
 
@@ -73,8 +72,8 @@ class MyDataLoader:
                     valid_size: float = 0.25, test_size: float = 0.2,
                     normalized_method: str = 'MinMaxScaler') -> Tuple[Dict[str, Data.TensorDataset],
                                                                       Dict[str,
-                                                                           List[Tensor]],
-                                                                      Dict[str, List[Tensor]]]:
+                                                                           List[torch.Tensor]],
+                                                                      Dict[str, List[torch.Tensor]]]:
         """Get Train Valid Test TensorDataset.
 
         Arguments:
@@ -126,9 +125,9 @@ class MyDataLoader:
                 combine_data, targets[:, index], test_size=test_size, random_state=42)
             x_train, x_val, y_train, y_val = train_test_split(
                 x_train_val, y_train_val, test_size=valid_size, random_state=42)
-            x_train_pics = torch.from_numpy(x_train[:, :-features_number])
-            x_val_pics = torch.from_numpy(x_val[:, :-features_number])
-            x_test_pics = torch.from_numpy(x_test[:, :-features_number])
+            x_train_pics = torch.from_numpy(x_train[:, :-features_number]).reshape(-1, 1, 24, 21)
+            x_val_pics = torch.from_numpy(x_val[:, :-features_number]).reshape(-1, 1, 24, 21)
+            x_test_pics = torch.from_numpy(x_test[:, :-features_number]).reshape(-1, 1, 24, 21)
             x_train_other = torch.from_numpy(x_train[:, -features_number:])
             x_val_other = torch.from_numpy(x_val[:, -features_number:])
             x_test_other = torch.from_numpy(x_test[:, -features_number:])
